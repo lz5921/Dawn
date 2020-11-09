@@ -1,4 +1,4 @@
-const {series, parallel, watch, src, dest} = require('gulp');
+const { series, parallel, watch, src, dest } = require('gulp');
 const pump = require('pump');
 
 // gulp plugins and utils
@@ -35,15 +35,23 @@ function hbs(done) {
     ], handleError(done));
 }
 
+function json(done) {
+    pump([
+        src('locales/*.json'),
+        livereload()
+    ], handleError(done));
+}
+
+
 function css(done) {
     pump([
-        src('assets/css/screen.css', {sourcemaps: true}),
+        src('assets/css/screen.css', { sourcemaps: true }),
         postcss([
             easyimport,
             autoprefixer(),
             cssnano()
         ]),
-        dest('assets/built/', {sourcemaps: '.'}),
+        dest('assets/built/', { sourcemaps: '.' }),
         livereload()
     ], handleError(done));
 }
@@ -53,10 +61,10 @@ function js(done) {
         src([
             'assets/js/lib/*.js',
             'assets/js/main.js'
-        ], {sourcemaps: true}),
+        ], { sourcemaps: true }),
         concat('main.min.js'),
         uglify(),
-        dest('assets/built/', {sourcemaps: '.'}),
+        dest('assets/built/', { sourcemaps: '.' }),
         livereload()
     ], handleError(done));
 }
@@ -67,7 +75,7 @@ function lint(done) {
         gulpStylelint({
             fix: true,
             reporters: [
-                {formatter: 'string', console: true}
+                { formatter: 'string', console: true }
             ]
         }),
         dest('assets/css/')
@@ -84,7 +92,7 @@ function zipper(done) {
             '!dist', '!dist/**',
             '!yarn-error.log'
         ]),
-        zip(filename),
+        //zip(filename),
         dest('dist/')
     ], handleError(done));
 }
@@ -92,7 +100,8 @@ function zipper(done) {
 const hbsWatcher = () => watch(['*.hbs', 'partials/**/*.hbs', 'members/**/*.hbs'], hbs);
 const cssWatcher = () => watch('assets/css/**/*.css', css);
 const jsWatcher = () => watch('assets/js/**/*.js', js);
-const watcher = parallel(hbsWatcher, cssWatcher, jsWatcher);
+const localeWatcher = () => watch('locales/*.json', json);
+const watcher = parallel(hbsWatcher, cssWatcher, jsWatcher, localeWatcher);
 const build = series(css, js);
 
 exports.build = build;
